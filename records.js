@@ -123,6 +123,8 @@
     this.value='';
   });
   window.RoletaRecords={
+    getState:function(){return copy();},
+    replaceState:function(next){if(!valid(next))return false; if(!commit(next))return false; renderHistory();renderEditor();opened(active());return true;},
     getDrawn:function(){return state.drawn.slice();},
     resetCycle:function(){var next=copy();next.drawn=[];return commit(next);},
     draw:function(pick,theme,drawn){
