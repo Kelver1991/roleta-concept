@@ -268,6 +268,7 @@
   @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}#wheelCanvas{transition:none;}}
 </style>
 
+<link rel="stylesheet" href="records.css">
 </head>
 <body>
 
@@ -286,12 +287,19 @@
     <p class="lede">Toda semana um vídeo curto, um tema sorteado e uma dúvida de cliente pra responder. Toque para sortear, monte seu vídeo e avalie pelo checklist. Os temas não se repetem dentro do ciclo.</p>
   </div>
 
-<nav class="quick-nav" aria-label="Atalhos"><a href="#roleta">Roleta</a><a href="#formula">Roteiro</a><a href="#checklist">Avaliar</a></nav>
+<nav class="quick-nav" aria-label="Atalhos"><a href="#roleta">Roleta</a><a href="#historico">Histórico e pendentes</a><a href="#formula">Roteiro</a><a href="#checklist">Avaliar</a></nav>
   <section id="roleta">
     <div class="section-head reveal">
       <span class="eyebrow">Bora praticar</span>
       <h2>Gira a roleta do tema</h2>
       <p>Vale pra dinâmica de verdade: cada giro sorteia um dos temas que ainda não saiu neste ciclo.</p>
+    </div>
+    <div id="recordError" role="alert" hidden></div>
+    <div class="consultant-box">
+      <label class="field-label" for="consultantName">Nome do consultor</label>
+      <input id="consultantName" type="text" maxlength="100" list="consultantNames" placeholder="Ex.: Ana Souza" autocomplete="off" required>
+      <datalist id="consultantNames"></datalist>
+      <p class="storage-note">Digite ou escolha um nome já cadastrado. O sorteio será salvo com esse nome para avaliar depois.</p>
     </div>
     <div class="wheel-block reveal">
       <div class="wheel-stage">
@@ -308,12 +316,30 @@
         </div>
         <p class="cycle-note" id="cycleNote"></p>
         <button class="nav-btn" id="resetCycle" type="button" hidden>Novo ciclo</button>
-        <p class="storage-note" id="storageNote">O ciclo fica salvo neste navegador. Use o mesmo celular para continuar a dinâmica.</p>
+        <p class="storage-note" id="storageNote">Sorteios e avaliações ficam neste aparelho e navegador. Volte pelo Histórico quando receber o vídeo.</p>
       </div>
     </div>
   </section>
   <svg class="wave" viewBox="0 0 1200 40" preserveAspectRatio="none"><path d="M0,20 C150,45 350,-5 600,20 C850,45 1050,-5 1200,20 L1200,40 L0,40 Z"></path></svg>
 
+  <section id="historico">
+    <div class="section-head"><span class="eyebrow">Continue de onde parou</span><h2>Histórico dos consultores</h2><p>Reabra um sorteio para avaliar em outro dia. Cada vídeo tem seu próprio registro, mesmo quando o consultor participa novamente.</p></div>
+    <div class="record-filters">
+      <div class="search-field"><label class="field-label" for="historySearch">Buscar consultor</label><input id="historySearch" type="search" placeholder="Nome do consultor"></div>
+      <div><label class="field-label" for="historyStatus">Situação</label><select id="historyStatus"><option value="all">Todos os registros</option><option value="pending">Pendentes de conclusão</option><option value="done">Avaliações concluídas</option></select></div>
+      <div><label class="field-label" for="historyMonth">Mês do sorteio</label><input id="historyMonth" type="month"></div>
+    </div>
+    <button id="clearFilters" class="nav-btn" type="button">Limpar filtros</button>
+    <p id="historySummary" class="record-summary"></p><div id="recordsList"></div>
+    <div class="section-head"><h2>Comparação dos consultores</h2><p>Média das avaliações concluídas, de 0 a 10. O filtro de mês acima vale para esta comparação; nomes e situação filtram apenas o histórico. Pendências não contam como nota zero.</p></div>
+    <div id="rankingList"></div>
+    <details class="history-box"><summary>Cópia de segurança</summary>
+      <p class="export-note">Os registros não são enviados ao GitHub e não são compartilhados automaticamente entre aparelhos. Limpar os dados do navegador pode apagar o histórico. Salve uma cópia para guardar ou transferir.</p>
+      <div class="record-actions"><button id="exportRecords" class="nav-btn" type="button">Baixar backup</button></div>
+      <label class="field-label" for="importRecords">Restaurar backup (.json)</label><input id="importRecords" type="file" accept="application/json,.json">
+      <p class="export-note">A importação acrescenta registros ausentes e preserva os já existentes.</p><p id="backupStatus" class="record-summary" role="status"></p>
+    </details>
+  </section>
   <section id="como-funciona">
     <div class="section-head reveal">
       <span class="eyebrow">Passo a passo</span>
@@ -325,7 +351,7 @@
         <div class="step-num">1</div>
         <span class="step-day">Segunda</span>
         <div class="step-title">Sorteio</div>
-        <p class="step-desc">Toque em “Girar a roleta” no celular para sortear o tema da vez. Faça um sorteio para cada participante.</p>
+        <p class="step-desc">Informe o nome do consultor e toque em “Girar a roleta”. O registro fica salvo aguardando o vídeo.</p>
       </div>
       <div class="step-card reveal">
         <div class="step-num">2</div>
@@ -337,7 +363,7 @@
         <div class="step-num">3</div>
         <span class="step-day">Quarta</span>
         <div class="step-title">Feedback</div>
-        <p class="step-desc">Evellyn assiste, pontua no checklist e devolve um elogio + um ajuste pra próxima semana.</p>
+        <p class="step-desc">Quando o vídeo chegar, Evellyn abre o Histórico, escolhe o registro, pontua e deixa um elogio + um ajuste.</p>
       </div>
     </div>
     <div class="rule-note reveal">
@@ -385,7 +411,15 @@
       <h2>Checklist rápido</h2>
       <p>Toque na nota de cada item (0 a 2). Meta pra fechar com chave de ouro: 8 de 10.</p>
     </div>
-    <div class="check-list reveal" id="checkList"></div>
+    <p id="evaluationEmpty" class="record-summary">Primeiro faça um sorteio com o nome do consultor ou abra um registro no <a href="#historico">Histórico</a>.</p>
+    <div id="recordEditor" class="record-editor" hidden><span id="evaluationBadge" class="record-badge"></span><h3 id="evaluationName"></h3><p id="evaluationTheme" class="record-meta"></p></div>
+    <fieldset id="evaluationFields" disabled>
+      <label class="field-label"><input id="videoReceived" type="checkbox" style="width:24px;min-height:24px;vertical-align:middle;margin-right:8px"> Vídeo recebido</label>
+      <div class="check-list reveal" id="checkList"></div>
+      <label class="field-label" for="feedback">Feedback: um elogio e um ajuste</label><textarea id="feedback" maxlength="5000" placeholder="Escreva suas observações para este vídeo..."></textarea>
+      <p id="recordSaveStatus" role="status" aria-live="polite"></p>
+      <div class="record-actions"><button id="saveLater" type="button" class="nav-btn">Salvar e continuar depois</button><button id="finishEvaluation" type="button" class="spin-btn">Concluir avaliação</button><a href="#historico">Voltar ao histórico</a></div>
+    </fieldset>
   </section>
 
   <section id="extras">
@@ -416,6 +450,7 @@
 
 <canvas id="confettiCanvas"></canvas>
 
+<script src="records.js"></script>
 <script>
 (function(){
   "use strict";
@@ -515,19 +550,11 @@
   var resultHint = document.getElementById("resultHint");
 
 
-  var storageKey = "concept-roleta-mobile-v1";
-  var drawn = [];
-  var resetCycle = document.getElementById("resetCycle");
-  var cycleNote = document.getElementById("cycleNote");
-  var drawHistory = document.getElementById("drawHistory");
-  try {
-    var saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    if (Array.isArray(saved) && saved.length <= segCount && saved.every(function(n,i){return Number.isInteger(n) && n>=0 && n<segCount && saved.indexOf(n)===i;})) drawn = saved;
-  } catch(e) { document.getElementById("storageNote").textContent = "O navegador não permitiu recuperar o ciclo. Você pode continuar usando a roleta nesta tela."; }
-  function saveCycle(){
-    try { localStorage.setItem(storageKey, JSON.stringify(drawn)); }
-    catch(e) { document.getElementById("storageNote").textContent = "O navegador não permitiu salvar. Mantenha esta página aberta para continuar este ciclo."; }
-  }
+  var records=window.RoletaRecords;
+  var drawn=records.getDrawn();
+  var resetCycle=document.getElementById("resetCycle");
+  var cycleNote=document.getElementById("cycleNote");
+  var drawHistory=document.getElementById("drawHistory");
   function renderCycle(){
     cycleNote.textContent = drawn.length + " de 12 temas sorteados · " + (segCount-drawn.length) + " disponíveis";
     resetCycle.hidden = drawn.length !== segCount;
@@ -555,18 +582,20 @@
   renderCycle();
   resetCycle.addEventListener("click",function(){
     if(spinning || drawn.length!==segCount) return;
-    drawn=[];saveCycle();renderCycle();
+    if(!records.resetCycle())return;
+    drawn=records.getDrawn();renderCycle();
     resultValue.textContent="Novo ciclo pronto";
     resultHint.textContent="Os 12 temas estão disponíveis novamente.";
     spinBtn.focus();
   });
   spinBtn.addEventListener("click", function(){
     if (spinning || drawn.length===segCount) return;
-    spinning = true;
     var available=TEMAS.map(function(t,i){return i;}).filter(function(i){return drawn.indexOf(i)===-1;});
     var pick=available[Math.floor(Math.random()*available.length)];
     // Save the draw immediately so reloading cannot lose an in-progress draw.
-    drawn.push(pick);saveCycle();
+    if(!records.draw(pick,TEMAS[pick].n,drawn))return;
+    drawn=records.getDrawn();spinning=true;
+    document.getElementById("consultantName").disabled=true;
     spinBtn.disabled=true;spinBtn.textContent="Sorteando…";
     resultValue.textContent="A roleta está girando…";
     resultHint.textContent="Prepare a sua próxima resposta!";
@@ -577,8 +606,9 @@
       if(finished)return;finished=true;clearTimeout(timer);
       canvas.removeEventListener("transitionend",onEnd);
       spinning=false;
+      document.getElementById("consultantName").disabled=false;
       resultValue.textContent=TEMAS[pick].n;
-      resultHint.textContent=TEMAS[pick].desc;
+      resultHint.textContent=records.active().name+" · Salvo! Avalie depois pelo Histórico.";
       renderCycle();
     }
     function onEnd(e){if(e.target===canvas && e.propertyName==="transform")finish();}
@@ -643,7 +673,9 @@
     if (!btn) return;
     var i = parseInt(btn.dataset.i,10);
     var v = parseInt(btn.dataset.v,10);
-    scores[i] = v;
+    var nextScores=scores.slice();nextScores[i]=v;
+    if(!records.saveScores(nextScores))return;
+    scores=nextScores;
     checkList.querySelectorAll('.pt-btn[data-i="'+i+'"]').forEach(function(b){
       b.classList.toggle("sel", parseInt(b.dataset.v,10) === v);
       b.setAttribute("aria-pressed",String(parseInt(b.dataset.v,10) === v));
@@ -664,7 +696,10 @@
   clearScore.className="nav-btn";clearScore.textContent="Limpar avaliação";clearScore.style.marginTop="16px";
   totalBar.insertAdjacentElement("afterend",clearScore);
   clearScore.addEventListener("click",function(){
-    scores=CHECK_ITEMS.map(function(){return null;});
+    if(!window.confirm("Limpar as cinco notas deste registro? O nome, tema e feedback serão mantidos."))return;
+    var empty=CHECK_ITEMS.map(function(){return null;});
+    if(!records.saveScores(empty))return;
+    scores=empty;
     checkList.querySelectorAll(".pt-btn").forEach(function(b){b.classList.remove("sel");b.setAttribute("aria-pressed","false");});
     updateTotal();
   });
@@ -735,7 +770,15 @@
     else { confettiRunning = false; cctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); }
   }
 
-  updateTotal();
+  records.onOpen(function(record){
+    scores=record?record.scores.slice():CHECK_ITEMS.map(function(){return null;});
+    celebrated=true;
+    checkList.querySelectorAll('.pt-btn').forEach(function(b){
+      var selected=scores[Number(b.dataset.i)]===Number(b.dataset.v);
+      b.classList.toggle('sel',selected);b.setAttribute('aria-pressed',String(selected));
+    });
+    updateTotal();
+  });
 })();
 </script>
 </body>
