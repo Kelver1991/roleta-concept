@@ -1,50 +1,11 @@
 (function(){
-  var SUPA_URL='https://jfnzxezhlrtqujppjzbb.supabase.co';
-  var SUPA_KEY='sb_publishable_ESjFBOIV0mD6i0Nzi4vtJg_PGZAVjoj';
-  var supabaseClient=null, remoteLoading=false;
+  var firebaseConfig={apiKey:'AIzaSyAzipXgpdZERMXyDXUyu5Wisglob-khhRI',authDomain:'gestaoconcept-d456d.firebaseapp.com',projectId:'gestaoconcept-d456d',storageBucket:'gestaoconcept-d456d.firebasestorage.app',messagingSenderId:'729487656186',appId:'1:729487656186:web:0d80c92e040ce466ffb543'};
+  var auth,db,remoteLoading=false;
   function show(id,on){var e=document.getElementById(id);if(e)e.hidden=!on;}
   function msg(t){var e=document.getElementById('authMessage');if(e)e.textContent=t;}
-  function recordsRows(state,userId){return state.records.map(function(r){return {id:r.id,owner_id:userId,consultant_name:r.name,theme:r.theme,created_at:r.createdAt,updated_at:r.updatedAt,received:r.received,status:r.status,scores:r.scores,feedback:r.feedback};});}
-  async function loadRemote(user){
-    remoteLoading=true;msg('Carregando seus registros…');
-    var res=await supabaseClient.from('roleta_records').select('*').order('created_at',{ascending:true});
-    if(res.error){localStorage.setItem('roleta-cloud-warning','1');show('authScreen',false);show('appContent',true);msg('Banco temporariamente indisponível. A roleta continua funcionando neste aparelho.');remoteLoading=false;return;}
-    var local=window.RoletaRecords.getState(), rows=res.data||[];
-    var incoming={version:2,drawn:local.drawn,activeId:null,records:rows.map(function(r){return {id:r.id,name:r.consultant_name,theme:r.theme,createdAt:r.created_at,updatedAt:r.updated_at,received:r.received,status:r.status,scores:r.scores,feedback:r.feedback};})};
-    if(incoming.records.length){incoming.activeId=incoming.records[incoming.records.length-1].id;window.RoletaRecords.replaceState(incoming);}
-    msg('Conectada como '+(user.email||'Evelyn')+'. Os registros ficam sincronizados.');show('authScreen',false);show('appContent',true);remoteLoading=false;
-  }
-  async function sync(){
-    if(!supabaseClient||remoteLoading)return;
-    var user=(await supabaseClient.auth.getUser()).data.user;if(!user)return;
-    var state=window.RoletaRecords.getState();
-    await supabaseClient.from('roleta_records').delete().eq('owner_id',user.id);
-    if(state.records.length)await supabaseClient.from('roleta_records').insert(recordsRows(state,user.id));
-  }
-  async function boot(){
-    if(!window.RoletaRecords)return;
-    function localMode(reason){
-      show('authScreen',false);show('appContent',true);
-      msg(reason||'Modo local ativo. Os registros ficam salvos neste aparelho.');
-    }
-    if(!window.supabase){ localMode('Modo local ativo. Os registros ficam salvos neste aparelho.'); return; }
-    supabaseClient=window.supabase.createClient(SUPA_URL,SUPA_KEY);
-    var sessionResult=await supabaseClient.auth.getSession();
-    if(sessionResult.error){ localMode('Banco temporariamente indisponível. A roleta continua funcionando neste aparelho.'); return; }
-    var session=sessionResult.data.session;
-    if(session){await loadRemote(session.user);}else{show('authScreen',true);show('appContent',false);}
-    document.getElementById('authForm').addEventListener('submit',async function(e){e.preventDefault();var email=document.getElementById('authEmail').value.trim(),pass=document.getElementById('authPassword').value;
-      msg('Entrando…');var result=await supabaseClient.auth.signInWithPassword({email:email,password:pass});
-      if(result.error){msg('E-mail ou senha incorretos. No primeiro acesso, use “Criar acesso”.');return;}await loadRemote(result.data.user);
-    });
-    document.getElementById('createAccess').addEventListener('click',async function(){var email=document.getElementById('authEmail').value.trim(),pass=document.getElementById('authPassword').value;
-      if(!email||!pass||pass.length<8){msg('Digite o e-mail e uma senha com pelo menos 8 caracteres.');return;}msg('Criando acesso…');var result=await supabaseClient.auth.signUp({email:email,password:pass});
-      if(result.error){msg(result.error.message);return;}if(result.data.session)await loadRemote(result.data.user);else msg('Acesse seu e-mail para confirmar o cadastro e depois entre aqui.');
-    });
-    document.getElementById('logoutCloud').addEventListener('click',async function(){await supabaseClient.auth.signOut();location.reload();});
-    ['saveLater','finishEvaluation','videoReceived'].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener('click',function(){setTimeout(sync,300);});});
-    document.getElementById('spinBtn').addEventListener('click',function(){setTimeout(sync,5000);});
-    document.getElementById('resetCycle').addEventListener('click',function(){setTimeout(sync,500);});
-  }
+  function localMode(t){show('authScreen',false);show('appContent',true);msg(t||'Modo local ativo.');}
+  async function loadRemote(user){remoteLoading=true;msg('Carregando seus registros…');try{var snap=await db.collection('roletaUsers').doc(user.uid).get();if(snap.exists&&snap.data().state)window.RoletaRecords.replaceState(snap.data().state);msg('Conectada como '+(user.email||'Evelyn')+'. Registros sincronizados.');show('authScreen',false);show('appContent',true);}catch(e){localMode('Banco temporariamente indisponível. A roleta continua funcionando neste aparelho.');}remoteLoading=false;}
+  async function sync(){if(!db||remoteLoading)return;var user=auth.currentUser;if(!user)return;try{await db.collection('roletaUsers').doc(user.uid).set({state:window.RoletaRecords.getState(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}catch(e){}}
+  function boot(){if(!window.RoletaRecords||!window.firebase){localMode();return;}try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();}catch(e){localMode();return;}auth.onAuthStateChanged(function(user){if(user)loadRemote(user);else{show('authScreen',true);show('appContent',false);}});document.getElementById('authForm').addEventListener('submit',async function(e){e.preventDefault();var email=document.getElementById('authEmail').value.trim(),pass=document.getElementById('authPassword').value;msg('Entrando…');try{await auth.signInWithEmailAndPassword(email,pass);}catch(err){msg('E-mail ou senha incorretos. No primeiro acesso, use “Criar acesso”.');}});document.getElementById('createAccess').addEventListener('click',async function(){var email=document.getElementById('authEmail').value.trim(),pass=document.getElementById('authPassword').value;if(!email||!pass||pass.length<6){msg('Digite o e-mail e uma senha com pelo menos 6 caracteres.');return;}msg('Criando acesso…');try{await auth.createUserWithEmailAndPassword(email,pass);}catch(err){msg(err.code==='auth/email-already-in-use'?'Este e-mail já tem acesso. Use Entrar.':err.message);}});document.getElementById('logoutCloud').addEventListener('click',function(){auth.signOut();});['saveLater','finishEvaluation','videoReceived'].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener('click',function(){setTimeout(sync,300);});});document.getElementById('spinBtn').addEventListener('click',function(){setTimeout(sync,5000);});document.getElementById('resetCycle').addEventListener('click',function(){setTimeout(sync,500);});}
   window.addEventListener('load',boot);
 })();
