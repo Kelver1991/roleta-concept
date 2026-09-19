@@ -8,7 +8,7 @@
   async function loadRemote(user){
     remoteLoading=true;msg('Carregando seus registros…');
     var res=await supabaseClient.from('roleta_records').select('*').order('created_at',{ascending:true});
-    if(res.error){msg('Não foi possível carregar os registros. Tente atualizar a página.');remoteLoading=false;return;}
+    if(res.error){localStorage.setItem('roleta-cloud-warning','1');show('authScreen',false);show('appContent',true);msg('Banco temporariamente indisponível. A roleta continua funcionando neste aparelho.');remoteLoading=false;return;}
     var local=window.RoletaRecords.getState(), rows=res.data||[];
     var incoming={version:2,drawn:local.drawn,activeId:null,records:rows.map(function(r){return {id:r.id,name:r.consultant_name,theme:r.theme,createdAt:r.created_at,updatedAt:r.updated_at,received:r.received,status:r.status,scores:r.scores,feedback:r.feedback};})};
     if(incoming.records.length){incoming.activeId=incoming.records[incoming.records.length-1].id;window.RoletaRecords.replaceState(incoming);}
@@ -22,9 +22,16 @@
     if(state.records.length)await supabaseClient.from('roleta_records').insert(recordsRows(state,user.id));
   }
   async function boot(){
-    if(!window.supabase||!window.RoletaRecords)return;
+    if(!window.RoletaRecords)return;
+    function localMode(reason){
+      show('authScreen',false);show('appContent',true);
+      msg(reason||'Modo local ativo. Os registros ficam salvos neste aparelho.');
+    }
+    if(!window.supabase){ localMode('Modo local ativo. Os registros ficam salvos neste aparelho.'); return; }
     supabaseClient=window.supabase.createClient(SUPA_URL,SUPA_KEY);
-    var session=(await supabaseClient.auth.getSession()).data.session;
+    var sessionResult=await supabaseClient.auth.getSession();
+    if(sessionResult.error){ localMode('Banco temporariamente indisponível. A roleta continua funcionando neste aparelho.'); return; }
+    var session=sessionResult.data.session;
     if(session){await loadRemote(session.user);}else{show('authScreen',true);show('appContent',false);}
     document.getElementById('authForm').addEventListener('submit',async function(e){e.preventDefault();var email=document.getElementById('authEmail').value.trim(),pass=document.getElementById('authPassword').value;
       msg('Entrando…');var result=await supabaseClient.auth.signInWithPassword({email:email,password:pass});
