@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Roleta do Vídeo • Concept Piscinas</title>
+<meta name="theme-color" content="#14110d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Roleta Concept">
+<style>
+  :root{
+    --bg:#14110d;
+    --surface:#1d1912;
+    --surface-2:#262018;
+    --surface-3:#2f271b;
+    --line:#3a3222;
+    --gold:#c9a227;
+    --gold-light:#f0ce6b;
+    --gold-soft:#7a5f22;
+    --text:#f5efe0;
+    --text-muted:#b7ac93;
+    --good:#7fae6a;
+    --font-display:'Playfair Display', Georgia, 'Times New Roman', serif;
+    --font-body:'Montserrat', -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    margin:0;
+    padding-inline:0;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding-inline:20px;
+  }
+  a{color:var(--gold-light);}
+  h1,h2,h3{font-family:var(--font-display); margin:0; text-wrap:balance;}
+  p{margin:0;}
+
+  /* ---------- topbar ---------- */
+  .topbar{
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:20;
+    background:rgba(20,17,13,.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    max-width:760px; margin:0 auto; padding:12px 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .brand{
+    font-family:var(--font-body); font-weight:700; font-size:12.5px;
+    letter-spacing:.09em; color:var(--gold-light); text-transform:uppercase;
+  }
+  .brand span{color:var(--text-muted); font-weight:600;}
+  .score-pill{
+    font-size:12.5px; font-weight:700; color:var(--bg);
+    background:var(--gold); padding:5px 12px; border-radius:100px;
+    white-space:nowrap;
+  }
+
+  /* ---------- hero ---------- */
+  .hero{padding:44px 0 8px;}
+  .kicker{
+    font-size:12.5px; font-weight:700; letter-spacing:.1em; color:var(--gold);
+    text-transform:uppercase; margin-bottom:10px; display:block;
+  }
+  .hero h1{font-size:clamp(32px,7vw,46px); line-height:1.05; font-weight:700; color:var(--text);}
+  .hero .accent{color:var(--gold-light); font-style:italic;}
+  .hero p.lede{
+    margin-top:14px; font-size:16px; line-height:1.55; color:var(--text-muted); max-width:46ch;
+  }
+
+  /* ---------- wave divider ---------- */
+  .wave{display:block; width:100%; height:34px; margin:8px 0;}
+  .wave path{fill:var(--surface);}
+
+  /* ---------- sections ---------- */
+  section{padding:38px 0;}
+  .section-head{margin-bottom:22px;}
+  .eyebrow{
+    font-size:11.5px; font-weight:700; letter-spacing:.09em; color:var(--gold);
+    text-transform:uppercase; display:block; margin-bottom:6px;
+  }
+  .section-head h2{font-size:clamp(22px,4.5vw,28px); color:var(--gold-light); font-weight:700;}
+  .section-head p{margin-top:8px; font-size:14.5px; color:var(--text-muted); max-width:52ch; line-height:1.5;}
+
+  .reveal{opacity:0; transform:translateY(14px); transition:opacity .55s ease, transform .55s ease;}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  /* ---------- steps ---------- */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  @media (max-width:620px){ .steps{grid-template-columns:1fr;} }
+  .step-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:20px 18px; position:relative; overflow:hidden;
+  }
+  .step-card::before{
+    content:""; position:absolute; inset:0 0 auto 0; height:3px;
+    background:linear-gradient(90deg,var(--gold),var(--gold-light));
+  }
+  .step-num{
+    width:36px; height:36px; border-radius:50%; background:var(--gold); color:var(--bg);
+    font-family:var(--font-display); font-weight:700; font-size:16px;
+    display:flex; align-items:center; justify-content:center; margin-bottom:12px;
+  }
+  .step-day{font-size:11px; font-weight:700; letter-spacing:.08em; color:var(--gold); text-transform:uppercase;}
+  .step-title{font-size:16.5px; font-weight:700; margin:4px 0 6px; color:var(--text);}
+  .step-desc{font-size:13.6px; line-height:1.5; color:var(--text-muted);}
+
+  .rule-note{
+    margin-top:16px; background:var(--surface-2); border-left:3px solid var(--gold);
+    padding:12px 16px; border-radius:0 10px 10px 0; font-size:13.6px; color:var(--text-muted); line-height:1.5;
+  }
+  .rule-note b{color:var(--gold-light);}
+
+  /* ---------- wheel ---------- */
+  .wheel-block{
+    display:flex; gap:28px; align-items:center; flex-wrap:wrap; justify-content:center;
+  }
+  .wheel-stage{position:relative; width:min(280px,80vw); height:min(280px,80vw); flex:0 0 auto;}
+  .wheel-pointer{
+    position:absolute; top:-6px; left:50%; transform:translateX(-50%);
+    width:0; height:0; border-left:12px solid transparent; border-right:12px solid transparent;
+    border-top:20px solid var(--gold-light); z-index:5; filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));
+  }
+  #wheelCanvas{
+    width:100%; height:100%; border-radius:50%;
+    transition:transform 4.4s cubic-bezier(.18,.79,.15,1);
+    box-shadow:0 0 0 6px var(--surface-3), 0 0 0 8px var(--gold-soft), 0 14px 34px rgba(0,0,0,.5);
+  }
+  .wheel-hub{
+    position:absolute; top:50%; left:50%; width:44px; height:44px; margin:-22px 0 0 -22px;
+    border-radius:50%; background:radial-gradient(circle at 35% 30%,var(--gold-light),var(--gold));
+    display:flex; align-items:center; justify-content:center; font-size:18px; z-index:4;
+    box-shadow:0 2px 6px rgba(0,0,0,.5);
+  }
+  .wheel-side{flex:1 1 240px; min-width:220px;}
+  .spin-btn{
+    appearance:none; border:none; cursor:pointer;
+    background:linear-gradient(180deg,var(--gold-light),var(--gold));
+    color:var(--bg); font-family:var(--font-body); font-weight:700; font-size:15px;
+    padding:13px 26px; border-radius:100px; letter-spacing:.02em;
+    box-shadow:0 6px 18px rgba(201,162,39,.35);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .spin-btn:hover{transform:translateY(-1px); box-shadow:0 8px 22px rgba(201,162,39,.45);}
+  .spin-btn:active{transform:translateY(0);}
+  .spin-btn:disabled{opacity:.55; cursor:default; transform:none;}
+  .result-card{
+    margin-top:16px; min-height:78px; background:var(--surface); border:1px dashed var(--gold-soft);
+    border-radius:12px; padding:16px 18px; display:flex; flex-direction:column; gap:3px;
+  }
+  .result-card .label{font-size:11px; font-weight:700; letter-spacing:.08em; color:var(--gold); text-transform:uppercase;}
+  .result-card .value{font-family:var(--font-display); font-size:20px; color:var(--text); font-weight:700;}
+  .result-card .hint{font-size:13px; color:var(--text-muted); margin-top:2px;}
+
+  /* ---------- CBV flow ---------- */
+  .cbv-flow{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
+  .cbv-btn{
+    appearance:none; cursor:pointer; font-family:var(--font-body); font-weight:700; font-size:12.5px;
+    letter-spacing:.02em; color:var(--text-muted); background:var(--surface); border:1px solid var(--line);
+    border-radius:100px; padding:9px 16px; transition:all .2s ease; text-transform:uppercase;
+  }
+  .cbv-btn.active{background:var(--gold); color:var(--bg); border-color:var(--gold);}
+  .cbv-btn .n{opacity:.7; margin-right:5px;}
+  .cbv-panel{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px;
+    min-height:120px;
+  }
+  .cbv-panel .tag{font-size:11px; font-weight:700; letter-spacing:.08em; color:var(--gold); text-transform:uppercase;}
+  .cbv-panel h3{margin:6px 0 8px; font-size:19px; color:var(--gold-light);}
+  .cbv-panel p{font-size:14px; line-height:1.6; color:var(--text);}
+  .cbv-panel .example{
+    margin-top:12px; padding-top:12px; border-top:1px solid var(--line);
+    font-style:italic; color:var(--text-muted); font-size:13.4px; line-height:1.55;
+  }
+  .cbv-nav{display:flex; justify-content:flex-end; gap:8px; margin-top:14px;}
+  .nav-btn{
+    appearance:none; cursor:pointer; background:transparent; color:var(--gold-light);
+    border:1px solid var(--gold-soft); border-radius:100px; padding:7px 16px; font-family:var(--font-body);
+    font-weight:700; font-size:12.5px;
+  }
+  .nav-btn:disabled{opacity:.35; cursor:default;}
+
+  /* ---------- temas grid ---------- */
+  .temas-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  @media (max-width:560px){ .temas-grid{grid-template-columns:repeat(2,1fr);} }
+  .tema-chip{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .tema-chip.hit{border-color:var(--gold); background:var(--surface-3);}
+  .tema-chip .num{font-family:var(--font-display); font-weight:700; color:var(--gold); font-size:14px;}
+  .tema-chip .name{display:block; margin-top:2px; font-size:12.8px; color:var(--text); font-weight:600;}
+
+  /* ---------- checklist ---------- */
+  .check-list{display:flex; flex-direction:column; gap:10px;}
+  .check-item{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  }
+  .check-item .q{font-size:14px; color:var(--text); flex:1 1 220px; line-height:1.4;}
+  .pts{display:flex; gap:6px;}
+  .pt-btn{
+    appearance:none; cursor:pointer; width:34px; height:34px; border-radius:50%;
+    border:1px solid var(--line); background:var(--surface-2); color:var(--text-muted);
+    font-family:var(--font-body); font-weight:700; font-size:13px;
+  }
+  .pt-btn.sel{background:var(--gold); border-color:var(--gold); color:var(--bg);}
+  .total-bar{
+    position:sticky; bottom:calc(env(safe-area-inset-bottom,0px) + 12px); margin-top:18px;
+    background:var(--surface-3); border:1px solid var(--gold-soft); border-radius:14px;
+    padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+    box-shadow:0 10px 26px rgba(0,0,0,.45);
+  }
+  .total-bar .tot-label{font-size:12px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:.06em;}
+  .total-bar .tot-value{font-family:var(--font-display); font-size:26px; color:var(--gold-light); font-weight:700;}
+  .total-bar .tot-msg{font-size:12.5px; color:var(--text-muted); max-width:20ch; text-align:right;}
+  .total-bar.win{border-color:var(--good);}
+  .total-bar.win .tot-value{color:var(--good);}
+
+  /* ---------- extras ---------- */
+  .extras{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  @media (max-width:620px){ .extras{grid-template-columns:1fr;} }
+  .extra-card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px;}
+  .extra-card h3{font-size:15.5px; color:var(--gold-light); margin-bottom:6px;}
+  .extra-card p{font-size:13.4px; color:var(--text-muted); line-height:1.5;}
+
+  footer{padding:26px 0 40px; border-top:1px solid var(--line); margin-top:10px;}
+  footer p{font-size:12px; color:var(--text-muted); font-style:italic;}
+
+  #confettiCanvas{position:fixed; inset:0; pointer-events:none; z-index:50;}
+
+  @media (prefers-reduced-motion:reduce){
+    .reveal{transition:none;}
+    #wheelCanvas{transition:none;}
+  }
+
+  html{scroll-behavior:smooth;scroll-padding-top:90px;}
+  body{padding-bottom:env(safe-area-inset-bottom,0px);}
+  button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+  button:focus-visible,a:focus-visible{outline:3px solid #f0ce6b;outline-offset:4px;}
+  .reveal{opacity:1;transform:none;}
+  .topbar{top:0;padding-top:env(safe-area-inset-top,0px);}
+  .topbar-inner{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));}
+  .brand{line-height:1.5;font-size:11px;}.brand span{display:block;}
+  .wrap{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right));}
+  .hero{padding-top:28px;}.hero p.lede{font-size:15px;}
+  .quick-nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 8px;}
+  .quick-nav a{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--line);border-radius:30px;text-decoration:none;font-size:13px;}
+  #roleta{padding-top:24px;}.wheel-block{gap:26px;}
+  .wheel-stage{width:min(320px,calc(100vw - 64px));height:min(320px,calc(100vw - 64px));}
+  .wheel-side{min-width:0;}.spin-btn{min-height:54px;width:100%;font-size:17px;}
+  .cbv-btn,.nav-btn{min-height:44px;}.pt-btn{width:46px;height:46px;}
+  .result-card{border-style:solid;min-height:112px;}.result-card .value{font-size:25px;}
+  .cycle-note{color:var(--gold-light);font-size:13px;line-height:1.5;margin:12px 0;}
+  .storage-note{font-size:12px;color:var(--text-muted);line-height:1.5;margin-top:10px;}
+  .history-box{margin-top:24px;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;}
+  .history-box summary{cursor:pointer;min-height:44px;color:var(--gold-light);font-weight:600;}
+  #drawHistory{padding-left:24px;font-size:14px;line-height:1.6;}#drawHistory li{padding:5px 0;}
+  .tema-chip.used{opacity:.55;}.tema-chip.hit{opacity:1;}
+  @media(max-width:620px){.wheel-block{flex-direction:column;}.wheel-side{flex:auto;width:100%;}.hero h1{font-size:36px;}section{padding:28px 0;}.total-bar{position:static;}.check-item .q{flex-basis:100%;}}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}#wheelCanvas{transition:none;}}
+</style>
+
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span class="brand">Concept Piscinas <span>&middot; Time da Evellyn</span></span>
+    <span class="score-pill" id="topScore">0 / 10</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <span class="kicker">Treinamento comercial &middot; dinâmica semanal</span>
+    <h1>A roleta decide.<br><span class="accent">Você grava e brilha.</span></h1>
+    <p class="lede">Toda semana um vídeo curto, um tema sorteado e uma dúvida de cliente pra responder. Toque para sortear, monte seu vídeo e avalie pelo checklist. Os temas não se repetem dentro do ciclo.</p>
+  </div>
+
+<nav class="quick-nav" aria-label="Atalhos"><a href="#roleta">Roleta</a><a href="#formula">Roteiro</a><a href="#checklist">Avaliar</a></nav>
+  <section id="roleta">
+    <div class="section-head reveal">
+      <span class="eyebrow">Bora praticar</span>
+      <h2>Gira a roleta do tema</h2>
+      <p>Vale pra dinâmica de verdade: cada giro sorteia um dos temas que ainda não saiu neste ciclo.</p>
+    </div>
+    <div class="wheel-block reveal">
+      <div class="wheel-stage">
+        <div class="wheel-pointer"></div>
+        <canvas id="wheelCanvas" width="840" height="840" role="img" aria-label="Roleta com 12 temas. O tema sorteado é anunciado abaixo."></canvas>
+        <div class="wheel-hub">&#127919;</div>
+      </div>
+      <div class="wheel-side">
+        <button class="spin-btn" id="spinBtn">Girar a roleta</button>
+        <div class="result-card" id="resultCard" role="status" aria-live="polite" aria-atomic="true">
+          <span class="label">Tema sorteado</span>
+          <span class="value" id="resultValue">Toque em girar</span>
+          <span class="hint" id="resultHint">O tema aparece aqui em segundos.</span>
+        </div>
+        <p class="cycle-note" id="cycleNote"></p>
+        <button class="nav-btn" id="resetCycle" type="button" hidden>Novo ciclo</button>
+        <p class="storage-note" id="storageNote">O ciclo fica salvo neste navegador. Use o mesmo celular para continuar a dinâmica.</p>
+      </div>
+    </div>
+  </section>
+  <svg class="wave" viewBox="0 0 1200 40" preserveAspectRatio="none"><path d="M0,20 C150,45 350,-5 600,20 C850,45 1050,-5 1200,20 L1200,40 L0,40 Z"></path></svg>
+
+  <section id="como-funciona">
+    <div class="section-head reveal">
+      <span class="eyebrow">Passo a passo</span>
+      <h2>Três dias, três movimentos</h2>
+      <p>Nada de planilha ou processo chato. O ciclo roda sozinho toda semana.</p>
+    </div>
+    <div class="steps">
+      <div class="step-card reveal">
+        <div class="step-num">1</div>
+        <span class="step-day">Segunda</span>
+        <div class="step-title">Sorteio</div>
+        <p class="step-desc">Toque em “Girar a roleta” no celular para sortear o tema da vez. Faça um sorteio para cada participante.</p>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-num">2</div>
+        <span class="step-day">Terça</span>
+        <div class="step-title">Grava e envia</div>
+        <p class="step-desc">Um vídeo de 60 a 90 segundos respondendo a uma dúvida real de cliente sobre o tema sorteado.</p>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-num">3</div>
+        <span class="step-day">Quarta</span>
+        <div class="step-title">Feedback</div>
+        <p class="step-desc">Evellyn assiste, pontua no checklist e devolve um elogio + um ajuste pra próxima semana.</p>
+      </div>
+    </div>
+    <div class="rule-note reveal">
+      <b>Regra do saquinho:</b> nesta roleta, o tema só repete depois de passar pelos outros 11. Ao completar os 12 sorteios, toque em “Novo ciclo” para começar de novo.
+    </div>
+  </section>
+
+  <svg class="wave" viewBox="0 0 1200 40" preserveAspectRatio="none"><path d="M0,20 C150,-5 350,45 600,20 C850,-5 1050,45 1200,20 L1200,40 L0,40 Z"></path></svg>
+
+
+
+  <svg class="wave" viewBox="0 0 1200 40" preserveAspectRatio="none"><path d="M0,20 C150,45 350,-5 600,20 C850,45 1050,-5 1200,20 L1200,40 L0,40 Z"></path></svg>
+
+  <section id="formula">
+    <div class="section-head reveal">
+      <span class="eyebrow">Como montar o vídeo</span>
+      <h2>A fórmula em 5 cliques</h2>
+      <p>Toque em cada etapa na ordem e veja como a dúvida do cliente vira um fechamento de vendas.</p>
+    </div>
+    <div class="cbv-flow reveal" id="cbvFlow"></div>
+    <div class="cbv-panel reveal" id="cbvPanel"></div>
+    <div class="cbv-nav reveal">
+      <button class="nav-btn" id="cbvPrev">&larr; Anterior</button>
+      <button class="nav-btn" id="cbvNext">Próxima &rarr;</button>
+    </div>
+  </section>
+
+  <svg class="wave" viewBox="0 0 1200 40" preserveAspectRatio="none"><path d="M0,20 C150,-5 350,45 600,20 C850,-5 1050,45 1200,20 L1200,40 L0,40 Z"></path></svg>
+
+<div class="history-box"><details><summary>Temas já sorteados neste ciclo</summary><ol id="drawHistory"></ol></details></div>
+  <section id="temas">
+    <div class="section-head reveal">
+      <span class="eyebrow">Banco de temas</span>
+      <h2>Os 12 papéis do saquinho</h2>
+      <p>O tema sorteado na roleta acende aqui embaixo.</p>
+    </div>
+    <div class="temas-grid reveal" id="temasGrid"></div>
+  </section>
+
+  <svg class="wave" viewBox="0 0 1200 40" preserveAspectRatio="none"><path d="M0,20 C150,45 350,-5 600,20 C850,45 1050,-5 1200,20 L1200,40 L0,40 Z"></path></svg>
+
+  <section id="checklist">
+    <div class="section-head reveal">
+      <span class="eyebrow">Avaliação da Evellyn</span>
+      <h2>Checklist rápido</h2>
+      <p>Toque na nota de cada item (0 a 2). Meta pra fechar com chave de ouro: 8 de 10.</p>
+    </div>
+    <div class="check-list reveal" id="checkList"></div>
+  </section>
+
+  <section id="extras">
+    <div class="section-head reveal">
+      <span class="eyebrow">Pra variar</span>
+      <h2>Tempero extra na dinâmica</h2>
+    </div>
+    <div class="extras reveal">
+      <div class="extra-card">
+        <h3>Semana surpresa</h3>
+        <p>Evellyn manda a dúvida na hora. A vendedora grava sem preparo.</p>
+      </div>
+      <div class="extra-card">
+        <h3>Cliente difícil</h3>
+        <p>Simular o clássico: &ldquo;está caro&rdquo;. Quem responde melhor ganha o ponto extra da semana.</p>
+      </div>
+      <div class="extra-card">
+        <h3>Ranking do mês</h3>
+        <p>Melhor média de pontos ganha um reconhecimento na reunião mensal.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Uso interno &middot; Equipe comercial Concept Piscinas &amp; Exteriores. Revisar temas a cada 2 meses.</p>
+  </footer>
+</div>
+
+<canvas id="confettiCanvas"></canvas>
+
+<script>
+(function(){
+  "use strict";
+
+  var TEMAS = [
+    {n:"Revestimentos", desc:"Acabamento, cor e textura da piscina."},
+    {n:"Hidráulica", desc:"Bomba, filtro e circulação da água."},
+    {n:"Iluminação", desc:"LEDs, cores e efeito noturno."},
+    {n:"Aquecimento", desc:"Bomba de calor e temporada de uso."},
+    {n:"Borda e deck", desc:"Acabamento ao redor da piscina."},
+    {n:"Casa de máquinas", desc:"Onde ficam os equipamentos."},
+    {n:"Peso na laje", desc:"Carga estrutural e cálculo de apoio."},
+    {n:"Prazo de instalação", desc:"Etapas e tempo até a entrega."},
+    {n:"Garantia", desc:"Cobertura e pós-venda."},
+    {n:"Manutenção da água", desc:"Tratamento e limpeza no dia a dia."},
+    {n:"Cascata e hidro", desc:"Efeitos de água e massagem."},
+    {n:"Automação", desc:"Controle remoto de todo o sistema."}
+  ];
+
+  var CBV = [
+    {tag:"Etapa 1", title:"Dúvida do cliente", text:"Fale a pergunta como se o cliente estivesse na sua frente. É o gancho do vídeo inteiro.", example:"“Por que essa bomba é mais cara que a outra?”"},
+    {tag:"Etapa 2", title:"Característica", text:"O que é o produto ou o item, em linguagem simples. Sem termo técnico difícil.", example:"Motor mais robusto e vedação de melhor qualidade."},
+    {tag:"Etapa 3", title:"Benefício", text:"O que o cliente ganha na prática com essa característica.", example:"Menos manutenção no dia a dia e menos impacto na conta de luz."},
+    {tag:"Etapa 4", title:"Vantagem", text:"Por que essa opção é melhor que a alternativa mais comum.", example:"Dura mais anos que a bomba comum, compensando o valor investido."},
+    {tag:"Etapa 5", title:"Fechamento", text:"Uma pergunta que leva o cliente ao próximo passo da negociação.", example:"“Quer que eu mostre a diferença de custo em 5 anos entre as duas opções?”"}
+  ];
+
+  var CHECK_ITEMS = [
+    "Começou com uma dúvida real de cliente?",
+    "Explicou simples, sem termo técnico difícil?",
+    "Mostrou benefício, não só característica?",
+    "Comparou com uma alternativa?",
+    "Fechou com uma pergunta pro cliente?"
+  ];
+
+  var GOLD_TONES = ["#c9a227","#f0ce6b","#8a6d29","#dcb84a"];
+
+  /* ---------- reveal on scroll ---------- */
+  var revealEls = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, {threshold:.12});
+    revealEls.forEach(function(el){ io.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add("in"); });
+  }
+
+  /* ---------- temas grid ---------- */
+  var temasGrid = document.getElementById("temasGrid");
+  TEMAS.forEach(function(t, i){
+    var chip = document.createElement("div");
+    chip.className = "tema-chip";
+    chip.id = "chip-" + i;
+    chip.innerHTML = '<span class="num">' + String(i+1).padStart(2,"0") + '</span><span class="name">' + t.n + '</span>';
+    temasGrid.appendChild(chip);
+  });
+
+  /* ---------- wheel ---------- */
+  var canvas = document.getElementById("wheelCanvas");
+  var ctx = canvas.getContext("2d");
+  var segCount = TEMAS.length;
+  var segAngle = (2*Math.PI)/segCount;
+  var R = canvas.width/2;
+
+  function drawWheel(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for (var i=0;i<segCount;i++){
+      var start = i*segAngle - Math.PI/2;
+      var end = start + segAngle;
+      ctx.beginPath();
+      ctx.moveTo(R,R);
+      ctx.arc(R,R,R-4,start,end);
+      ctx.closePath();
+      ctx.fillStyle = GOLD_TONES[i % GOLD_TONES.length];
+      ctx.fill();
+      ctx.strokeStyle = "#14110d";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(R,R);
+      ctx.rotate(start + segAngle/2);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#14110d";
+      ctx.font = "700 27px -apple-system, Arial, sans-serif";
+      ctx.fillText(TEMAS[i].n, R-28, 9, R-95);
+      ctx.restore();
+    }
+  }
+  drawWheel();
+
+  var spinning = false;
+  var currentRotation = 0;
+  var spinBtn = document.getElementById("spinBtn");
+  var resultValue = document.getElementById("resultValue");
+  var resultHint = document.getElementById("resultHint");
+
+
+  var storageKey = "concept-roleta-mobile-v1";
+  var drawn = [];
+  var resetCycle = document.getElementById("resetCycle");
+  var cycleNote = document.getElementById("cycleNote");
+  var drawHistory = document.getElementById("drawHistory");
+  try {
+    var saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    if (Array.isArray(saved) && saved.length <= segCount && saved.every(function(n,i){return Number.isInteger(n) && n>=0 && n<segCount && saved.indexOf(n)===i;})) drawn = saved;
+  } catch(e) { document.getElementById("storageNote").textContent = "O navegador não permitiu recuperar o ciclo. Você pode continuar usando a roleta nesta tela."; }
+  function saveCycle(){
+    try { localStorage.setItem(storageKey, JSON.stringify(drawn)); }
+    catch(e) { document.getElementById("storageNote").textContent = "O navegador não permitiu salvar. Mantenha esta página aberta para continuar este ciclo."; }
+  }
+  function renderCycle(){
+    cycleNote.textContent = drawn.length + " de 12 temas sorteados · " + (segCount-drawn.length) + " disponíveis";
+    resetCycle.hidden = drawn.length !== segCount;
+    spinBtn.disabled = spinning || drawn.length===segCount;
+    spinBtn.textContent = spinning ? "Sorteando…" : drawn.length===segCount ? "Ciclo completo!" : "Girar a roleta";
+    drawHistory.textContent = "";
+    drawn.forEach(function(n){var li=document.createElement("li");li.textContent=TEMAS[n].n;drawHistory.appendChild(li);});
+    if (!drawn.length) {var li=document.createElement("li");li.textContent="Nenhum tema sorteado ainda.";drawHistory.appendChild(li);}
+    TEMAS.forEach(function(t,i){
+      var chip=document.getElementById("chip-"+i);
+      chip.classList.toggle("used", drawn.indexOf(i)!==-1);
+      chip.classList.toggle("hit", drawn.length>0 && drawn[drawn.length-1]===i);
+    });
+  }
+  if (drawn.length){
+    var previous = drawn[drawn.length-1];
+    resultValue.textContent=TEMAS[previous].n;
+    resultHint.textContent=TEMAS[previous].desc;
+    currentRotation=360-(previous+.5)*360/segCount;
+    canvas.style.transition="none";
+    canvas.style.transform="rotate("+currentRotation+"deg)";
+    canvas.getBoundingClientRect();
+    canvas.style.transition="";
+  }
+  renderCycle();
+  resetCycle.addEventListener("click",function(){
+    if(spinning || drawn.length!==segCount) return;
+    drawn=[];saveCycle();renderCycle();
+    resultValue.textContent="Novo ciclo pronto";
+    resultHint.textContent="Os 12 temas estão disponíveis novamente.";
+    spinBtn.focus();
+  });
+  spinBtn.addEventListener("click", function(){
+    if (spinning || drawn.length===segCount) return;
+    spinning = true;
+    var available=TEMAS.map(function(t,i){return i;}).filter(function(i){return drawn.indexOf(i)===-1;});
+    var pick=available[Math.floor(Math.random()*available.length)];
+    // Save the draw immediately so reloading cannot lose an in-progress draw.
+    drawn.push(pick);saveCycle();
+    spinBtn.disabled=true;spinBtn.textContent="Sorteando…";
+    resultValue.textContent="A roleta está girando…";
+    resultHint.textContent="Prepare a sua próxima resposta!";
+    var targetSegMiddleDeg=(pick+.5)*360/segCount;
+    var finalDeg=currentRotation+5*360+(360-targetSegMiddleDeg)-(currentRotation%360);
+    var finished=false, timer;
+    function finish(){
+      if(finished)return;finished=true;clearTimeout(timer);
+      canvas.removeEventListener("transitionend",onEnd);
+      spinning=false;
+      resultValue.textContent=TEMAS[pick].n;
+      resultHint.textContent=TEMAS[pick].desc;
+      renderCycle();
+    }
+    function onEnd(e){if(e.target===canvas && e.propertyName==="transform")finish();}
+    canvas.addEventListener("transitionend",onEnd);
+    canvas.style.transform="rotate("+finalDeg+"deg)";
+    currentRotation=finalDeg;
+    timer=setTimeout(finish,window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 30 : 4600);
+  });
+
+  /* ---------- CBV flow ---------- */
+  var cbvFlow = document.getElementById("cbvFlow");
+  var cbvPanel = document.getElementById("cbvPanel");
+  var cbvPrev = document.getElementById("cbvPrev");
+  var cbvNext = document.getElementById("cbvNext");
+  var cbvIndex = 0;
+
+  CBV.forEach(function(step, i){
+    var b = document.createElement("button");
+    b.className = "cbv-btn";
+    b.innerHTML = '<span class="n">' + (i+1) + '</span>' + step.title;
+    b.addEventListener("click", function(){ setCbv(i); });
+    cbvFlow.appendChild(b);
+  });
+
+  function setCbv(i){
+    cbvIndex = i;
+    var step = CBV[i];
+    Array.prototype.forEach.call(cbvFlow.children, function(btn, idx){
+      btn.classList.toggle("active", idx === i);
+      btn.setAttribute("aria-pressed", String(idx === i));
+    });
+    cbvPanel.innerHTML =
+      '<span class="tag">' + step.tag + '</span>' +
+      '<h3>' + step.title + '</h3>' +
+      '<p>' + step.text + '</p>' +
+      '<p class="example">&ldquo;' + step.example.replace(/^“|”$/g,"") + '&rdquo;</p>';
+    cbvPrev.disabled = i === 0;
+    cbvNext.disabled = i === CBV.length - 1;
+    if (i === CBV.length - 1) burstConfetti();
+  }
+  cbvPrev.addEventListener("click", function(){ if (cbvIndex>0) setCbv(cbvIndex-1); });
+  cbvNext.addEventListener("click", function(){ if (cbvIndex<CBV.length-1) setCbv(cbvIndex+1); });
+  setCbv(0);
+
+  /* ---------- checklist ---------- */
+  var checkList = document.getElementById("checkList");
+  var scores = CHECK_ITEMS.map(function(){ return null; });
+  var topScore = document.getElementById("topScore");
+
+  CHECK_ITEMS.forEach(function(q, i){
+    var row = document.createElement("div");
+    row.className = "check-item";
+    var pts = [0,1,2].map(function(v){
+      return '<button class="pt-btn" data-i="'+i+'" data-v="'+v+'">'+v+'</button>';
+    }).join("");
+    row.innerHTML = '<span class="q">'+q+'</span><div class="pts" role="group" aria-label="'+q+'">'+pts+'</div>';
+    checkList.appendChild(row);
+  });
+
+  checkList.addEventListener("click", function(e){
+    var btn = e.target.closest(".pt-btn");
+    if (!btn) return;
+    var i = parseInt(btn.dataset.i,10);
+    var v = parseInt(btn.dataset.v,10);
+    scores[i] = v;
+    checkList.querySelectorAll('.pt-btn[data-i="'+i+'"]').forEach(function(b){
+      b.classList.toggle("sel", parseInt(b.dataset.v,10) === v);
+      b.setAttribute("aria-pressed",String(parseInt(b.dataset.v,10) === v));
+    });
+    updateTotal();
+  });
+
+  var totalBarHTML =
+    '<div><div class="tot-label">Total</div><div class="tot-value" id="totVal">0 / 10</div></div>' +
+    '<div class="tot-msg" id="totMsg">Avalie os 5 itens acima.</div>';
+  var totalBar = document.createElement("div");
+  totalBar.className = "total-bar";
+  totalBar.id = "totalBar";
+  totalBar.innerHTML = totalBarHTML;
+  checkList.parentNode.insertBefore(totalBar, checkList.nextSibling);
+
+  var clearScore=document.createElement("button");
+  clearScore.className="nav-btn";clearScore.textContent="Limpar avaliação";clearScore.style.marginTop="16px";
+  totalBar.insertAdjacentElement("afterend",clearScore);
+  clearScore.addEventListener("click",function(){
+    scores=CHECK_ITEMS.map(function(){return null;});
+    checkList.querySelectorAll(".pt-btn").forEach(function(b){b.classList.remove("sel");b.setAttribute("aria-pressed","false");});
+    updateTotal();
+  });
+  var celebrated = false;
+  function updateTotal(){
+    var answered = scores.filter(function(s){ return s !== null; });
+    var sum = answered.reduce(function(a,b){ return a+b; }, 0);
+    document.getElementById("totVal").textContent = sum + " / 10";
+    topScore.textContent = sum + " / 10";
+    var msg = document.getElementById("totMsg");
+    if (answered.length < CHECK_ITEMS.length){
+      msg.textContent = (CHECK_ITEMS.length - answered.length) + " item(ns) faltando avaliar.";
+      totalBar.classList.remove("win");
+      celebrated = false;
+    } else if (sum >= 8){
+      msg.textContent = "Chave de ouro! Vídeo aprovado.";
+      totalBar.classList.add("win");
+      if (!celebrated){ burstConfetti(); celebrated = true; }
+    } else {
+      msg.textContent = "Quase lá, ajusta e tenta de novo.";
+      totalBar.classList.remove("win");
+      celebrated = false;
+    }
+  }
+
+  /* ---------- confetti ---------- */
+  var confettiCanvas = document.getElementById("confettiCanvas");
+  var cctx = confettiCanvas.getContext("2d");
+  var particles = [];
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function resizeConfetti(){
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resizeConfetti);
+  resizeConfetti();
+
+  function burstConfetti(){
+    if (reduceMotion) return;
+    var colors = ["#c9a227","#f0ce6b","#f5efe0","#dcb84a"];
+    for (var i=0;i<70;i++){
+      particles.push({
+        x: confettiCanvas.width/2 + (Math.random()-.5)*120,
+        y: confettiCanvas.height*.25,
+        vx: (Math.random()-.5)*7,
+        vy: Math.random()*-6 - 2,
+        g: 0.18,
+        size: 3 + Math.random()*4,
+        color: colors[Math.floor(Math.random()*colors.length)],
+        life: 90 + Math.random()*30
+      });
+    }
+    if (!confettiRunning){ confettiRunning = true; requestAnimationFrame(tickConfetti); }
+  }
+  var confettiRunning = false;
+  function tickConfetti(){
+    cctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+    particles.forEach(function(p){
+      p.vy += p.g; p.x += p.vx; p.y += p.vy; p.life -= 1;
+      cctx.globalAlpha = Math.max(p.life/120,0);
+      cctx.fillStyle = p.color;
+      cctx.fillRect(p.x,p.y,p.size,p.size);
+    });
+    cctx.globalAlpha = 1;
+    particles = particles.filter(function(p){ return p.life>0 && p.y < confettiCanvas.height+40; });
+    if (particles.length>0){ requestAnimationFrame(tickConfetti); }
+    else { confettiRunning = false; cctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); }
+  }
+
+  updateTotal();
+})();
+</script>
+</body>
+</html>
